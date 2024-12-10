@@ -75,6 +75,9 @@ export const CryptoCard = ({ crypto, onClick, isExpanded, predictions, isLoading
   return (
     <motion.div 
       layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
       onClick={onClick}
       className={`group p-6 rounded-2xl bg-[#151C2F] hover:bg-[#1B2236] transition-all duration-300 cursor-pointer border border-white/5 hover:border-primary/20 relative overflow-hidden ${
         isExpanded ? 'col-span-2 row-span-2' : ''

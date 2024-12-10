@@ -19,6 +19,12 @@ function App() {
     enabled: !!selectedCrypto,
   });
 
+  const { data: predictions, isLoading: isLoadingPredictions } = useQuery({
+    queryKey: ['predictions', selectedCrypto?.id],
+    queryFn: () => selectedCrypto ? api.getPrediction(selectedCrypto.id) : Promise.resolve([]),
+    enabled: !!selectedCrypto,
+  });
+
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
@@ -92,19 +98,13 @@ function App() {
               <AnimatePresence>
                 {cryptos.map((crypto) => {
                   const isSelected = selectedCrypto?.id === crypto.id;
-                  const { data: predictions, isLoading: isLoadingPredictions } = useQuery({
-                    queryKey: ['predictions', crypto.id],
-                    queryFn: () => api.getPrediction(crypto.id),
-                    enabled: isSelected,
-                  });
-
                   return (
                     <CryptoCard
                       key={crypto.id}
                       crypto={crypto}
                       onClick={() => setSelectedCrypto(isSelected ? null : crypto)}
                       isExpanded={isSelected}
-                      predictions={predictions}
+                      predictions={isSelected ? predictions : undefined}
                       isLoadingPredictions={isLoadingPredictions}
                     />
                   );
