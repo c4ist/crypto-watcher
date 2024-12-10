@@ -43,16 +43,33 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
   marketTrend,
   isLoadingMarketTrend,
 }) => {
+  const getColorScheme = (percentage: number) => {
+    const intensity = Math.min(Math.abs(percentage) / 10, 1); // Cap at 10% for max intensity
+    if (percentage >= 0) {
+      return {
+        text: `rgb(${Math.round(220 - 186 * intensity)}, ${Math.round(38 + 159 * intensity)}, ${Math.round(38 + 56 * intensity)})`,
+        bg: `rgba(${Math.round(220 - 186 * intensity)}, ${Math.round(38 + 159 * intensity)}, ${Math.round(38 + 56 * intensity)}, 0.1)`,
+        border: `rgb(${Math.round(220 - 186 * intensity)}, ${Math.round(38 + 159 * intensity)}, ${Math.round(38 + 56 * intensity)})`
+      };
+    } else {
+      return {
+        text: `rgb(${Math.round(34 + 205 * intensity)}, ${Math.round(197 - 129 * intensity)}, ${Math.round(94 - 26 * intensity)})`,
+        bg: `rgba(${Math.round(34 + 205 * intensity)}, ${Math.round(197 - 129 * intensity)}, ${Math.round(94 - 26 * intensity)}, 0.1)`,
+        border: `rgb(${Math.round(34 + 205 * intensity)}, ${Math.round(197 - 129 * intensity)}, ${Math.round(94 - 26 * intensity)})`
+      };
+    }
+  };
+
+  const colors = getColorScheme(crypto.price_change_percentage_24h);
+
   const chartData = {
     labels: Array(crypto.sparkline_in_7d.price.length).fill(''),
     datasets: [
       {
         fill: true,
         data: crypto.sparkline_in_7d.price,
-        borderColor: crypto.price_change_percentage_24h >= 0 ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)',
-        backgroundColor: crypto.price_change_percentage_24h >= 0 
-          ? 'rgba(34, 197, 94, 0.1)' 
-          : 'rgba(239, 68, 68, 0.1)',
+        borderColor: colors.border,
+        backgroundColor: colors.bg,
         borderWidth: 2,
         tension: 0.4,
         pointRadius: 0,
@@ -85,9 +102,7 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
     <motion.div 
       layout
       onClick={onClick}
-      className={`relative overflow-hidden rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 cursor-pointer transition-colors hover:bg-white/10 ${
-        isExpanded ? 'col-span-2' : ''
-      }`}
+      className="relative overflow-hidden rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 cursor-pointer transition-colors hover:bg-white/10 h-full"
     >
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -113,11 +128,11 @@ export const CryptoCard: React.FC<CryptoCardProps> = ({
               <p className="text-sm text-[#94A3B8]">Current Price</p>
             </div>
             <span 
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium ${
-                crypto.price_change_percentage_24h >= 0 
-                  ? 'text-[#10b981] bg-[#10b981]/10 group-hover:bg-[#10b981]/20' 
-                  : 'text-[#ef4444] bg-[#ef4444]/10 group-hover:bg-[#ef4444]/20'
-              } transition-colors duration-300`}
+              className={`px-3 py-1.5 rounded-lg text-sm font-medium`}
+              style={{
+                color: colors.text,
+                backgroundColor: colors.bg
+              }}
             >
               {crypto.price_change_percentage_24h >= 0 ? '+' : ''}
               {crypto.price_change_percentage_24h.toFixed(2)}%

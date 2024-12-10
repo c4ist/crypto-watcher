@@ -93,22 +93,27 @@ function App() {
                 </motion.div>
               ))}
             </div>
-          ) : cryptos && cryptos.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-auto gap-4 mx-auto max-w-7xl">
+          ) : cryptos?.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-7xl mx-auto">
               <AnimatePresence>
                 {cryptos.map((crypto) => {
                   const isSelected = selectedCrypto?.id === crypto.id;
                   return (
-                    <CryptoCard
+                    <motion.div
                       key={crypto.id}
-                      crypto={crypto}
-                      onClick={() => setSelectedCrypto(isSelected ? null : crypto)}
-                      isExpanded={isSelected}
-                      predictions={isSelected ? predictions : undefined}
-                      isLoadingPredictions={isLoadingPredictions}
-                      marketTrend={isSelected ? (marketTrend ?? undefined) : undefined}
-                      isLoadingMarketTrend={isLoadingMarketTrend}
-                    />
+                      layout
+                      className={`${isSelected ? 'md:col-span-2 lg:col-span-3' : ''}`}
+                    >
+                      <CryptoCard
+                        crypto={crypto}
+                        onClick={() => setSelectedCrypto(isSelected ? null : crypto)}
+                        isExpanded={isSelected}
+                        predictions={isSelected ? predictions : undefined}
+                        isLoadingPredictions={isLoadingPredictions}
+                        marketTrend={isSelected ? (marketTrend ?? undefined) : undefined}
+                        isLoadingMarketTrend={isLoadingMarketTrend}
+                      />
+                    </motion.div>
                   );
                 })}
               </AnimatePresence>
