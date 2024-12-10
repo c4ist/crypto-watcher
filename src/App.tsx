@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CryptoCard } from './components/CryptoCard';
-import { PredictionChart } from './components/PredictionChart';
 import { api } from './services/api';
 import { CryptoAsset } from './types/crypto';
 
