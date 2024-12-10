@@ -47,7 +47,7 @@ export const api = {
   },
 
   // Simulated market trend analysis (replace with actual analysis in production)
-  getMarketTrend: async (coinId: string): Promise<MarketTrend> => {
+  getMarketTrend: async (_coinId: string): Promise<MarketTrend> => {
     try {
       const rsi = 30 + Math.random() * 40;
       const macd = -5 + Math.random() * 10;

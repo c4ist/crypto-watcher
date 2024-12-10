@@ -1,4 +1,5 @@
 import { Line } from 'react-chartjs-2';
+import { ChartOptions, TooltipItem } from 'chart.js';
 import { PredictionData } from '../types/crypto';
 import { format } from 'date-fns';
 
@@ -44,7 +45,7 @@ export const PredictionChart = ({ predictions, currentPrice }: Props) => {
     ],
   };
 
-  const options = {
+  const options: ChartOptions<'line'> = {
     responsive: true,
     plugins: {
       legend: {
@@ -52,18 +53,23 @@ export const PredictionChart = ({ predictions, currentPrice }: Props) => {
       },
       tooltip: {
         callbacks: {
-          label: (context: any) => {
-            return `$${context.raw.toLocaleString()}`;
+          label: (tooltipItem: TooltipItem<'line'>) => {
+            const value = Number(tooltipItem.raw);
+            return `$${value.toLocaleString()}`;
           },
         },
       },
     },
     scales: {
       y: {
+        type: 'linear' as const,
         min: minPrice,
         max: maxPrice,
         ticks: {
-          callback: (value: number) => `$${value.toLocaleString()}`,
+          callback: (tickValue: number | string) => {
+            const value = Number(tickValue);
+            return `$${value.toLocaleString()}`;
+          },
         },
       },
     },
