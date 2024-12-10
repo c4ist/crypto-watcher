@@ -31,7 +31,7 @@ export const api = {
   },
 
   // Simulated prediction data (replace with actual ML model in production)
-  async getPrediction(cryptoId: string): Promise<PredictionData[]> {
+  async getPrediction(_cryptoId: string): Promise<PredictionData[]> {
     // Simulated API call - replace with actual prediction API
     await new Promise(resolve => setTimeout(resolve, 1000));
     
@@ -52,7 +52,7 @@ export const api = {
     return predictions;
   },
 
-  async getMarketTrend(cryptoId: string): Promise<MarketTrend> {
+  async getMarketTrend(_cryptoId: string): Promise<MarketTrend> {
     // Simulated API call - replace with actual API endpoint
     await new Promise(resolve => setTimeout(resolve, 1000));
     
