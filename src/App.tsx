@@ -14,12 +14,6 @@ function App() {
     queryFn: () => api.getTopCryptos(20),
   });
 
-  const { data: predictions = [], isLoading: isLoadingPredictions } = useQuery({
-    queryKey: ['predictions', selectedCrypto?.id],
-    queryFn: () => selectedCrypto ? api.getPrediction(selectedCrypto.id) : Promise.resolve([]),
-    enabled: !!selectedCrypto,
-  });
-
   const { data: marketTrend } = useQuery({
     queryKey: ['trend', selectedCrypto?.id],
     queryFn: () => selectedCrypto ? api.getMarketTrend(selectedCrypto.id) : Promise.resolve(null),
@@ -95,23 +89,27 @@ function App() {
               ))}
             </div>
           ) : cryptos && cryptos.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mx-auto max-w-7xl">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 auto-rows-auto gap-4 mx-auto max-w-7xl">
               <AnimatePresence>
-                {cryptos.map((crypto, index) => (
-                  <motion.div
-                    key={crypto.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    transition={{ duration: 0.3, delay: index * 0.1 }}
-                  >
+                {cryptos.map((crypto) => {
+                  const isSelected = selectedCrypto?.id === crypto.id;
+                  const { data: predictions, isLoading: isLoadingPredictions } = useQuery({
+                    queryKey: ['predictions', crypto.id],
+                    queryFn: () => api.getPrediction(crypto.id),
+                    enabled: isSelected,
+                  });
+
+                  return (
                     <CryptoCard
+                      key={crypto.id}
                       crypto={crypto}
-                      onClick={() => setSelectedCrypto(crypto)}
+                      onClick={() => setSelectedCrypto(isSelected ? null : crypto)}
+                      isExpanded={isSelected}
+                      predictions={predictions}
+                      isLoadingPredictions={isLoadingPredictions}
                     />
-                  </motion.div>
-                ))}
+                  );
+                })}
               </AnimatePresence>
             </div>
           ) : (
@@ -157,19 +155,6 @@ function App() {
                     </p>
                   </div>
                 </div>
-
-                {isLoadingPredictions ? (
-                  <div className="h-64 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
-                  </div>
-                ) : (
-                  <div className="flex justify-center">
-                    <PredictionChart
-                      predictions={predictions}
-                      currentPrice={selectedCrypto.current_price}
-                    />
-                  </div>
-                )}
 
                 {marketTrend && (
                   <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">

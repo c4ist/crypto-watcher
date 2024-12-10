@@ -1,5 +1,6 @@
-import { CryptoAsset } from '../types/crypto';
+import { CryptoAsset, PredictionData } from '../types/crypto';
 import { Line } from 'react-chartjs-2';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -26,9 +27,12 @@ ChartJS.register(
 interface Props {
   crypto: CryptoAsset;
   onClick: () => void;
+  isExpanded: boolean;
+  predictions?: PredictionData[];
+  isLoadingPredictions: boolean;
 }
 
-export const CryptoCard = ({ crypto, onClick }: Props) => {
+export const CryptoCard = ({ crypto, onClick, isExpanded, predictions, isLoadingPredictions }: Props) => {
   const chartData = {
     labels: Array(crypto.sparkline_in_7d.price.length).fill(''),
     datasets: [
@@ -69,9 +73,12 @@ export const CryptoCard = ({ crypto, onClick }: Props) => {
   };
 
   return (
-    <div 
+    <motion.div 
+      layout
       onClick={onClick}
-      className="group p-6 rounded-2xl bg-[#151C2F] hover:bg-[#1B2236] transition-all duration-300 cursor-pointer border border-white/5 hover:border-primary/20 relative overflow-hidden"
+      className={`group p-6 rounded-2xl bg-[#151C2F] hover:bg-[#1B2236] transition-all duration-300 cursor-pointer border border-white/5 hover:border-primary/20 relative overflow-hidden ${
+        isExpanded ? 'col-span-2 row-span-2' : ''
+      }`}
     >
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -111,8 +118,77 @@ export const CryptoCard = ({ crypto, onClick }: Props) => {
           <div className="h-[80px] -mx-2 -mb-4">
             <Line data={chartData} options={options} />
           </div>
+
+          <AnimatePresence>
+            {isExpanded && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ duration: 0.3 }}
+                className="mt-6 pt-6 border-t border-white/10"
+              >
+                <h4 className="text-lg font-semibold text-white mb-4">Price Prediction</h4>
+                {isLoadingPredictions ? (
+                  <div className="h-[200px] flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
+                  </div>
+                ) : predictions ? (
+                  <div className="h-[200px]">
+                    <Line
+                      data={{
+                        labels: ['Now', ...predictions.map(p => new Date(p.timestamp).toLocaleDateString())],
+                        datasets: [{
+                          label: 'Predicted Price',
+                          data: [crypto.current_price, ...predictions.map(p => p.predicted_price)],
+                          borderColor: '#2563eb',
+                          backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                          fill: true,
+                          tension: 0.4,
+                        }],
+                      }}
+                      options={{
+                        responsive: true,
+                        plugins: {
+                          legend: {
+                            display: false,
+                          },
+                          tooltip: {
+                            callbacks: {
+                              label: (context) => {
+                                return `$${Number(context.raw).toLocaleString()}`;
+                              },
+                            },
+                          },
+                        },
+                        scales: {
+                          x: {
+                            grid: {
+                              color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            ticks: {
+                              color: '#94A3B8',
+                            },
+                          },
+                          y: {
+                            grid: {
+                              color: 'rgba(255, 255, 255, 0.1)',
+                            },
+                            ticks: {
+                              color: '#94A3B8',
+                              callback: (value) => `$${Number(value).toLocaleString()}`,
+                            },
+                          },
+                        },
+                      }}
+                    />
+                  </div>
+                ) : null}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
