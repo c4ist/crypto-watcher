@@ -20,11 +20,8 @@ export interface PredictionData {
 }
 
 export interface MarketTrend {
+  rsi: number;
+  macd: number;
+  volumeChange: number;
   trend: 'bullish' | 'bearish' | 'neutral';
-  strength: number;
-  indicators: {
-    rsi: number;
-    macd: number;
-    volume: number;
-  };
 }

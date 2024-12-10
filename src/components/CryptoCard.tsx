@@ -1,4 +1,4 @@
-import { CryptoAsset, PredictionData } from '../types/crypto';
+import { CryptoAsset, PredictionData, MarketTrend } from '../types/crypto';
 import { Line } from 'react-chartjs-2';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -24,33 +24,45 @@ ChartJS.register(
   Legend
 );
 
-interface Props {
+interface CryptoCardProps {
   crypto: CryptoAsset;
   onClick: () => void;
   isExpanded: boolean;
   predictions?: PredictionData[];
-  isLoadingPredictions: boolean;
+  isLoadingPredictions?: boolean;
+  marketTrend?: MarketTrend;
+  isLoadingMarketTrend?: boolean;
 }
 
-export const CryptoCard = ({ crypto, onClick, isExpanded, predictions, isLoadingPredictions }: Props) => {
+export const CryptoCard: React.FC<CryptoCardProps> = ({
+  crypto,
+  onClick,
+  isExpanded,
+  predictions,
+  isLoadingPredictions,
+  marketTrend,
+  isLoadingMarketTrend,
+}) => {
   const chartData = {
     labels: Array(crypto.sparkline_in_7d.price.length).fill(''),
     datasets: [
       {
         fill: true,
         data: crypto.sparkline_in_7d.price,
-        borderColor: crypto.price_change_percentage_24h >= 0 ? '#22c55e' : '#ef4444',
+        borderColor: crypto.price_change_percentage_24h >= 0 ? 'rgb(34, 197, 94)' : 'rgb(239, 68, 68)',
         backgroundColor: crypto.price_change_percentage_24h >= 0 
           ? 'rgba(34, 197, 94, 0.1)' 
           : 'rgba(239, 68, 68, 0.1)',
+        borderWidth: 2,
         tension: 0.4,
         pointRadius: 0,
       },
     ],
   };
 
-  const options = {
+  const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         display: false,
@@ -67,20 +79,14 @@ export const CryptoCard = ({ crypto, onClick, isExpanded, predictions, isLoading
         display: false,
       },
     },
-    interaction: {
-      intersect: false,
-    },
   };
 
   return (
     <motion.div 
       layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
       onClick={onClick}
-      className={`group p-6 rounded-2xl bg-[#151C2F] hover:bg-[#1B2236] transition-all duration-300 cursor-pointer border border-white/5 hover:border-primary/20 relative overflow-hidden ${
-        isExpanded ? 'col-span-2 row-span-2' : ''
+      className={`relative overflow-hidden rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 cursor-pointer transition-colors hover:bg-white/10 ${
+        isExpanded ? 'col-span-2' : ''
       }`}
     >
       {/* Gradient overlay */}
@@ -119,74 +125,132 @@ export const CryptoCard = ({ crypto, onClick, isExpanded, predictions, isLoading
           </div>
           
           <div className="h-[80px] -mx-2 -mb-4">
-            <Line data={chartData} options={options} />
+            <Line data={chartData} options={chartOptions} />
           </div>
 
           <AnimatePresence>
             {isExpanded && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
+                animate={{ height: 'auto' }}
+                initial={false}
                 transition={{ duration: 0.3 }}
-                className="mt-6 pt-6 border-t border-white/10"
+                className="overflow-hidden"
               >
-                <h4 className="text-lg font-semibold text-white mb-4">Price Prediction</h4>
-                {isLoadingPredictions ? (
-                  <div className="h-[200px] flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-2 border-primary border-t-transparent"></div>
-                  </div>
-                ) : predictions ? (
-                  <div className="h-[200px]">
-                    <Line
-                      data={{
-                        labels: ['Now', ...predictions.map(p => new Date(p.timestamp).toLocaleDateString())],
-                        datasets: [{
-                          label: 'Predicted Price',
-                          data: [crypto.current_price, ...predictions.map(p => p.predicted_price)],
-                          borderColor: '#2563eb',
-                          backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                          fill: true,
-                          tension: 0.4,
-                        }],
-                      }}
-                      options={{
-                        responsive: true,
-                        plugins: {
-                          legend: {
-                            display: false,
-                          },
-                          tooltip: {
-                            callbacks: {
-                              label: (context) => {
-                                return `$${Number(context.raw).toLocaleString()}`;
+                <div className="p-4 space-y-4">
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold">Price Prediction</h3>
+                    {isLoadingPredictions ? (
+                      <div className="h-[200px] flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : predictions && predictions.length > 0 ? (
+                      <div className="h-[200px]">
+                        <Line
+                          data={{
+                            labels: ['Now', ...predictions.map(p => new Date(p.timestamp).toLocaleDateString())],
+                            datasets: [
+                              {
+                                label: 'Predicted Price',
+                                data: [crypto.current_price, ...predictions.map(p => p.predicted_price)],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                fill: true,
+                                tension: 0.4,
+                                pointRadius: 4,
+                              },
+                            ],
+                          }}
+                          options={{
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                              legend: {
+                                display: false,
+                              },
+                              tooltip: {
+                                callbacks: {
+                                  label: (context) => {
+                                    const value = context.raw as number;
+                                    return `$${value.toLocaleString()}`;
+                                  },
+                                },
                               },
                             },
-                          },
-                        },
-                        scales: {
-                          x: {
-                            grid: {
-                              color: 'rgba(255, 255, 255, 0.1)',
+                            scales: {
+                              x: {
+                                grid: {
+                                  display: false,
+                                },
+                              },
+                              y: {
+                                beginAtZero: false,
+                                grid: {
+                                  color: 'rgba(255, 255, 255, 0.1)',
+                                },
+                                ticks: {
+                                  callback: (value) => `$${Number(value).toLocaleString()}`,
+                                  color: 'rgba(255, 255, 255, 0.5)',
+                                },
+                              },
                             },
-                            ticks: {
-                              color: '#94A3B8',
-                            },
-                          },
-                          y: {
-                            grid: {
-                              color: 'rgba(255, 255, 255, 0.1)',
-                            },
-                            ticks: {
-                              color: '#94A3B8',
-                              callback: (value) => `$${Number(value).toLocaleString()}`,
-                            },
-                          },
-                        },
-                      }}
-                    />
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">No prediction data available</p>
+                    )}
                   </div>
-                ) : null}
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold">Market Trend</h3>
+                    {isLoadingMarketTrend ? (
+                      <div className="h-[100px] flex items-center justify-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+                      </div>
+                    ) : marketTrend ? (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="bg-gray-100 p-3 rounded-lg">
+                          <p className="text-sm text-gray-600">RSI</p>
+                          <p className={`text-lg font-semibold ${
+                            marketTrend.rsi > 70 ? 'text-red-500' :
+                            marketTrend.rsi < 30 ? 'text-green-500' :
+                            'text-gray-900'
+                          }`}>
+                            {marketTrend.rsi.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="bg-gray-100 p-3 rounded-lg">
+                          <p className="text-sm text-gray-600">MACD</p>
+                          <p className={`text-lg font-semibold ${
+                            marketTrend.macd > 0 ? 'text-green-500' : 'text-red-500'
+                          }`}>
+                            {marketTrend.macd.toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="bg-gray-100 p-3 rounded-lg">
+                          <p className="text-sm text-gray-600">Volume Change</p>
+                          <p className={`text-lg font-semibold ${
+                            marketTrend.volumeChange > 0 ? 'text-green-500' : 'text-red-500'
+                          }`}>
+                            {marketTrend.volumeChange.toFixed(2)}%
+                          </p>
+                        </div>
+                        <div className="bg-gray-100 p-3 rounded-lg">
+                          <p className="text-sm text-gray-600">Trend</p>
+                          <p className={`text-lg font-semibold ${
+                            marketTrend.trend === 'bullish' ? 'text-green-500' :
+                            marketTrend.trend === 'bearish' ? 'text-red-500' :
+                            'text-yellow-500'
+                          }`}>
+                            {marketTrend.trend.charAt(0).toUpperCase() + marketTrend.trend.slice(1)}
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-gray-500">No market trend data available</p>
+                    )}
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>

@@ -3,7 +3,7 @@ import { CryptoAsset, PredictionData, MarketTrend } from '../types/crypto';
 
 const COINGECKO_API = 'https://api.coingecko.com/api/v3';
 
-const axiosInstance = axios.create({
+const instance = axios.create({
   baseURL: COINGECKO_API,
   timeout: 10000,
 });
@@ -11,7 +11,7 @@ const axiosInstance = axios.create({
 export const api = {
   getTopCryptos: async (limit: number = 20): Promise<CryptoAsset[]> => {
     try {
-      const response = await axiosInstance.get('/coins/markets', {
+      const response = await instance.get('/coins/markets', {
         params: {
           vs_currency: 'usd',
           order: 'market_cap_desc',
@@ -31,44 +31,50 @@ export const api = {
   },
 
   // Simulated prediction data (replace with actual ML model in production)
-  getPrediction: async (coinId: string): Promise<PredictionData[]> => {
-    try {
-      const currentPrice = (await api.getTopCryptos(100))
-        .find(crypto => crypto.id === coinId)?.current_price || 0;
-
-      return Array.from({ length: 7 }, (_, i) => ({
-        timestamp: new Date(Date.now() + i * 24 * 60 * 60 * 1000).toISOString(),
-        predicted_price: currentPrice * (1 + (Math.random() - 0.5) * 0.1),
-        confidence: 0.7 + Math.random() * 0.2
-      }));
-    } catch (error) {
-      throw new Error('Failed to generate price predictions');
+  async getPrediction(cryptoId: string): Promise<PredictionData[]> {
+    // Simulated API call - replace with actual prediction API
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    const currentDate = new Date();
+    const predictions: PredictionData[] = [];
+    
+    for (let i = 1; i <= 7; i++) {
+      const date = new Date();
+      date.setDate(currentDate.getDate() + i);
+      
+      predictions.push({
+        timestamp: date.toISOString(),
+        predicted_price: 1000 + Math.random() * 500, // Mock price
+        confidence: 0.7 + Math.random() * 0.3,
+      });
     }
+    
+    return predictions;
   },
 
-  // Simulated market trend analysis (replace with actual analysis in production)
-  getMarketTrend: async (_coinId: string): Promise<MarketTrend> => {
-    try {
-      const rsi = 30 + Math.random() * 40;
-      const macd = -5 + Math.random() * 10;
-      const volume = Math.random() * 1000000;
-
-      let trend: 'bullish' | 'bearish' | 'neutral';
-      if (rsi > 60) trend = 'bullish';
-      else if (rsi < 40) trend = 'bearish';
-      else trend = 'neutral';
-
-      return {
-        trend,
-        strength: Math.random() * 100,
-        indicators: {
-          rsi,
-          macd,
-          volume
-        }
-      };
-    } catch (error) {
-      throw new Error('Failed to analyze market trends');
+  async getMarketTrend(cryptoId: string): Promise<MarketTrend> {
+    // Simulated API call - replace with actual API endpoint
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Generate mock data for demonstration
+    const rsi = 30 + Math.random() * 40;
+    const macd = -2 + Math.random() * 4;
+    const volumeChange = -20 + Math.random() * 40;
+    
+    let trend: 'bullish' | 'bearish' | 'neutral';
+    if (rsi > 60 && macd > 0) {
+      trend = 'bullish';
+    } else if (rsi < 40 && macd < 0) {
+      trend = 'bearish';
+    } else {
+      trend = 'neutral';
     }
+    
+    return {
+      rsi,
+      macd,
+      volumeChange,
+      trend,
+    };
   }
 };

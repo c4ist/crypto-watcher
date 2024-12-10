@@ -13,7 +13,7 @@ function App() {
     queryFn: () => api.getTopCryptos(20),
   });
 
-  const { data: marketTrend } = useQuery({
+  const { data: marketTrend, isLoading: isLoadingMarketTrend } = useQuery({
     queryKey: ['trend', selectedCrypto?.id],
     queryFn: () => selectedCrypto ? api.getMarketTrend(selectedCrypto.id) : Promise.resolve(null),
     enabled: !!selectedCrypto,
@@ -106,6 +106,8 @@ function App() {
                       isExpanded={isSelected}
                       predictions={isSelected ? predictions : undefined}
                       isLoadingPredictions={isLoadingPredictions}
+                      marketTrend={isSelected ? (marketTrend ?? undefined) : undefined}
+                      isLoadingMarketTrend={isLoadingMarketTrend}
                     />
                   );
                 })}
@@ -118,82 +120,6 @@ function App() {
           )}
         </div>
       </div>
-
-      {/* Prediction Modal */}
-      <AnimatePresence>
-        {selectedCrypto && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-background/90 backdrop-blur-md"
-              onClick={() => setSelectedCrypto(null)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ type: "spring", duration: 0.5 }}
-              className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl mx-auto px-4"
-            >
-              <div className="card backdrop-blur-xl bg-surface/90 border border-surface-light/20 shadow-2xl">
-                <div className="flex items-center justify-center gap-6 mb-8">
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full"></div>
-                    <img
-                      src={selectedCrypto.image}
-                      alt={selectedCrypto.name}
-                      className="w-16 h-16 relative"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <h2 className="text-3xl font-bold">{selectedCrypto.name}</h2>
-                    <p className="text-neutral text-lg">
-                      {selectedCrypto.symbol.toUpperCase()}
-                    </p>
-                  </div>
-                </div>
-
-                {marketTrend && (
-                  <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="card bg-surface-light/50 flex flex-col items-center">
-                      <h3 className="text-lg font-semibold mb-4">Market Trend</h3>
-                      <div className={`text-2xl font-bold text-center ${
-                        marketTrend.trend === 'bullish' ? 'text-success' :
-                        marketTrend.trend === 'bearish' ? 'text-danger' :
-                        'text-neutral'
-                      }`}>
-                        {marketTrend.trend.charAt(0).toUpperCase() + marketTrend.trend.slice(1)}
-                      </div>
-                      <div className="mt-3 text-sm text-neutral text-center">
-                        Confidence Score: {marketTrend.strength.toFixed(1)}%
-                      </div>
-                    </div>
-                    <div className="card bg-surface-light/50">
-                      <h3 className="text-lg font-semibold mb-4 text-center">Technical Indicators</h3>
-                      <div className="space-y-3 max-w-xs mx-auto">
-                        <div className="flex justify-between items-center">
-                          <span className="text-neutral">RSI</span>
-                          <span className="font-medium">{marketTrend.indicators.rsi.toFixed(1)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-neutral">MACD</span>
-                          <span className="font-medium">{marketTrend.indicators.macd.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-neutral">Volume</span>
-                          <span className="font-medium">{marketTrend.indicators.volume.toLocaleString()}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
